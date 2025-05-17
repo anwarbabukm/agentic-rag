@@ -172,3 +172,9 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+#custom
+neo4j_data
+qdrant_data
+open-webui
+.DS_Store
