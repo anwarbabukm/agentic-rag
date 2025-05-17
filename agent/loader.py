@@ -6,9 +6,32 @@ from agent.graph_tool import extract_and_store_triplets
 from agent.vector_tool import generate_qdrant_store
 from langchain_neo4j import Neo4jGraph
 
-# Configure logging
+import logging
+import sys
+from datetime import datetime
+
+# Create logs directory if it doesn't exist
+os.makedirs("logs", exist_ok=True)
+log_file = f"logs/ingestion_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+
+# Configure logger
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+# Formatter
+formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+
+# Console handler
+if not any(isinstance(h, logging.StreamHandler) for h in logger.handlers):
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+
+# File handler
+if not any(isinstance(h, logging.FileHandler) for h in logger.handlers):
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
 
 def load_and_chunk_pdf(pdf_path: str, chunk_size: int = 1000, chunk_overlap: int = 200):
     logger.info(f"Loading PDF from path: {pdf_path}")
@@ -78,5 +101,6 @@ def load_and_ingest():
         logger.error(f"Failed to connect to Neo4j: {e}")
         raise
 
+    logger.info("Neo4j data load was successful")
     
     return "success"
