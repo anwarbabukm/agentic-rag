@@ -1,17 +1,20 @@
 import logging
 from langchain_qdrant import Qdrant
-from langchain_huggingface import HuggingFaceEmbeddings
 from qdrant_client import QdrantClient
 from langchain_neo4j import Neo4jGraph
-from langchain_ollama import ChatOllama
 from langchain.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from dotenv import load_dotenv
-import os
 import ast
 
-load_dotenv()
-api_key = os.getenv("OPENAI_API_KEY")
+from load_config import load_config
+from agent.init_llm import initialize_llm
+from agent.init_embedding import initialize_embedding
+
+# Load configuration
+provider, llm_config, embedding_config = load_config()
+
+# Initialize models
+llm = initialize_llm(provider, llm_config)
+embedding_model = initialize_embedding(provider, embedding_config)
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -38,7 +41,6 @@ def insert_triplets_to_neo4j(triplets: list[tuple[str, str, str]], graph: Neo4jG
 
 
 def extract_and_store_triplets(documents, graph):
-    llm = ChatOpenAI(model="gpt-4o", temperature=0, openai_api_key=api_key)
 
     extraction_prompt = PromptTemplate.from_template(
         """
@@ -80,10 +82,6 @@ def extract_and_store_triplets(documents, graph):
 
 def generate_qdrant_store(documents, model_name="sentence-transformers/all-MiniLM-L6-v2", collection="graphrag_knowledge_base"):
     logger.info(f"Initializing embedding model: {model_name}")
-    #embedding_model = HuggingFaceEmbeddings(model_name=model_name)
-    embedding_model = OpenAIEmbeddings(model="text-embedding-3-small", openai_api_key=api_key)
-
-
 
     logger.info("Connecting to Qdrant client at localhost:6333")
     qdrant_client = QdrantClient(host="localhost", port=6333)

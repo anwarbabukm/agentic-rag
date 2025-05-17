@@ -1,66 +1,57 @@
+# agentic_graphrag_app/streamlit_app.py
 import streamlit as st
-import requests
-import os
+from agent.agent_runner import answer_query
+from agent.loader import load_and_ingest  
 
-# Set page config
-st.set_page_config(page_title="GraphRAG QA", page_icon="🧠")
+st.set_page_config(page_title="Agentic GraphRAG Chat", layout="wide")
+st.title("🤖 Agentic GraphRAG Chat Interface")
 
-# Custom dark theme styling
-st.markdown("""
+# Custom CSS to adjust sidebar width
+st.markdown(
+    """
     <style>
-        body, .stApp {
-            background-color: #0e1117;
-            color: white;
+        section[data-testid="stSidebar"] {
+            width: 250px !important;
         }
-        .stTextInput > div > div > input {
-            background-color: #262730;
-            color: white;
-        }
-        .stChatInputContainer {
-            background-color: #262730;
-            color: white;
-        }
-        .stChatMessage {
-            background-color: #1e222a;
-            border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        code {
-            background-color: #2d2f3a;
-            color: #dcdcaa;
+        section[data-testid="stSidebar"] > div:first-child {
+            width: 250px !important;
         }
     </style>
-""", unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True
+)
 
-# Backend URL (change if needed)
-API_URL = os.getenv("RAG_API_URL", "http://localhost:8000/v1/chat/completions")
+# Sidebar loader button
+with st.sidebar:
+    st.header("⚙️ Data Loader")
+    if st.button("📂 Load Knowledge Base"):
+        with st.spinner("Loading and indexing documents..."):
+            status = load_and_ingest()
+        if status == "success":
+            st.success("Documents loaded and indexed into Qdrant and Neo4j!")
+        else:
+            st.error("❌ Document loading failed!")
 
-st.title("🧠 Agentic GraphRAG Chat")
-
+# Session state to hold chat history
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-user_input = st.chat_input("Ask a question...")
+# Input area (bottom of screen style)
+for sender, message in st.session_state.chat_history:
+    with st.chat_message("assistant" if sender == "Agent" else "user"):
+        st.markdown(message)
 
+# User input at the bottom
+user_input = st.chat_input("Ask your question...")
 if user_input:
-    st.session_state.chat_history.append({"role": "user", "content": user_input})
+    with st.chat_message("user"):
+        st.markdown(user_input)
 
-    payload = {
-        "model": "qwen",
-        "messages": st.session_state.chat_history
-    }
+    with st.spinner("Thinking..."):
+        response = answer_query(user_input)
 
-    try:
-        response = requests.post(API_URL, json=payload)
-        result = response.json()
-        assistant_msg = result["choices"][0]["message"]["content"]
-        st.session_state.chat_history.append({"role": "assistant", "content": assistant_msg})
-    except Exception as e:
-        assistant_msg = f"❌ Error: {str(e)}"
-        st.session_state.chat_history.append({"role": "assistant", "content": assistant_msg})
+    with st.chat_message("assistant"):
+        st.markdown(response)
 
-# Display chat history
-for msg in st.session_state.chat_history:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+    st.session_state.chat_history.append(("You", user_input))
+    st.session_state.chat_history.append(("Agent", response))
