@@ -178,3 +178,4 @@ neo4j_data
 qdrant_data
 open-webui
 .DS_Store
+logs
