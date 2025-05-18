@@ -95,6 +95,7 @@ docker compose up -d build
 ```
 
 ```bash
+#set up the .env file
 NEO4J_URL=<db_url>
 NEO4J_USER=<username>
 NEO4J_PASSWORD=<password>
