@@ -94,6 +94,15 @@ Make sure the Docker Desktop is running in the background to run the services
 docker compose up -d build
 ```
 
+```bash
+NEO4J_URL=<db_url>
+NEO4J_USER=<username>
+NEO4J_PASSWORD=<password>
+
+QDRANT_HOST=<host_link>
+QDRANT_PORT=<port>
+```
+
 ### 3. Install Ollama and Pull Models
 ```bash
 brew install ollama     # or refer to https://ollama.com/download
