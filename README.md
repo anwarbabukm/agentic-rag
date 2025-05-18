@@ -5,11 +5,11 @@ Agentic GraphRAG is a powerful RAG (Retrieval-Augmented Generation) application 
 
 ---
 
-## 🧠 Architecture
+## 🧠 Solution Flow
 
 ```
                 +-------------------------+
-                |     Streamlit UI        |
+                |         Q&A UI          |
                 +-----------+-------------+
                             |
                             v
@@ -90,7 +90,7 @@ cd agentic-rag
 ### 2. Start Qdrant and Neo4j via Docker
 Make sure the Docker Desktop is running in the background to run the services
 ```bash
-# Qdrant
+# Qdrant and Neo4j
 docker compose up -d build
 ```
 
